@@ -1,17 +1,25 @@
+import ctypes
+import os
+import ctypes
 from fastapi import FastAPI
-import subprocess
 
 app = FastAPI()
 
-@app.get('/')
+# Load the C++ shared library
+lib_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../bridges/cpp/libcompute.so"))
+cpp_lib = ctypes.CDLL(lib_path)
+
+
+@app.get("/")
 async def root():
-    return {'message': 'J.A.R.V.I.S. AI Backend Running'}
+    return {"message": "J.A.R.V.I.S. AI Backend Running"}
 
-@app.get('/run-rust')
-async def run_rust_code():
-    result = subprocess.run(['../bridges/rust/target/release/compute'], capture_output=True, text=True)
-    return {'rust_output': result.stdout}
+@app.get("/run-cpp")
+async def run_cpp():
+    cpp_lib.compute()  # Call the C++ function
+    return {"message": "C++ function executed"}
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host='0.0.0.0', port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8000)
+    
